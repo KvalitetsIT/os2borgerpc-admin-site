@@ -17,19 +17,25 @@ class Command(BaseCommand):
         now = datetime.now()
         perform_check = False
         for pc in all_pcs:
-            if pc.last_seen and (now - pc.last_seen).total_seconds() < 600:
+            if pc.last_seen and (now - pc.last_seen).total_seconds() > 600:
                 perform_check = True
                 break
 
         if perform_check:
             logger = logging.getLogger(__name__)
 
+            logger.info(1)
+
             rules_to_check = EventRuleServer.objects.prefetch_related("alert_groups")
+            logger.info(2)
             for rule in rules_to_check:
+                logger.info(3)
                 if rule.monitor_period_start < now.time() < rule.monitor_period_end:
                     email_dict = {}
 
+                    logger.info(4)
                     if rule.alert_groups.first():
+                        logger.info(5)
                         pcs_to_check_pk = list(
                             set(rule.alert_groups.values_list("pcs", flat=True))
                         )
@@ -37,16 +43,19 @@ class Command(BaseCommand):
                             pk__in=pcs_to_check_pk
                         )
                     else:
+                        logger.info(6)
                         pcs_to_check = PC.objects.only("name", "last_seen").filter(
                             site=rule.site
                         )
 
                     for pc in pcs_to_check:
+                        logger.info(7)
                         if (
                             pc.last_seen
                             and (now - pc.last_seen).total_seconds()
                             > rule.maximum_offline_period * 60
                         ):
+                            logger.info(8)
                             try:
                                 latest_event_time = (
                                     SecurityEvent.objects.only("reported_time")
@@ -57,13 +66,16 @@ class Command(BaseCommand):
                                 )
                                 new_offline = pc.last_seen > latest_event_time
                             except AttributeError:
+                                logger.info(9)
                                 new_offline = True
 
                             if new_offline:
+                                logger.info(10)
                                 summary = (
                                     f"The Computer {pc.name} was offline for longer than "
                                     f"{rule.maximum_offline_period} minutes"
                                 )
+                                logger.info(11)
                                 SecurityEvent.objects.create(
                                     event_rule_server=rule,
                                     pc=pc,
@@ -71,9 +83,11 @@ class Command(BaseCommand):
                                     reported_time=now,
                                     summary=summary,
                                 )
+                                logger.info(12)
                                 supervisor_relations = pc.pc_groups.exclude(
                                     supervisors=None
                                 )
+                                logger.info(13)
 
                                 if supervisor_relations:
                                     alert_users_pk = list(
