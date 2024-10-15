@@ -107,7 +107,7 @@ RUN set -ex \
 # Run the server as the bpc user on port 9999
 USER 1001
 EXPOSE 9999
+EXPOSE 8080
 ENTRYPOINT ["/code/docker/docker-entrypoint.sh"]
-CMD ["gunicorn", \
-  "--config", "/code/docker/gunicorn-settings.py", \
-  "os2borgerpc_admin.wsgi"]
+CMD bash -c "gunicorn --bind 0.0.0.0:8080 os2borgerpc_admin.cronWsgi & \
+             gunicorn --config /code/docker/gunicorn-settings.py os2borgerpc_admin.wsgi"
