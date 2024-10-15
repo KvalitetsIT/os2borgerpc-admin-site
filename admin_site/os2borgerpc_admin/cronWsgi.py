@@ -14,11 +14,11 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 def application(environ, start_response):
     path = environ.get('PATH_INFO', '/')
 
-    cron_routes = {
-        '/cron/check_notifications': 'check_notifications',
-        '/cron/clean_up_database': 'clean_up_database',
+    job_routes = {
+        '/jobs/check_notifications': 'check_notifications',
+        '/jobs/clean_up_database': 'clean_up_database',
     }
-    command = cron_routes.get(path, None)
+    command = job_routes.get(path, None)
         
     if command:
         error = run(command)
