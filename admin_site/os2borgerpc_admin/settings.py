@@ -53,6 +53,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+header = os.environ['SECURE_PROXY_SSL_HEADER']
+headerValue = os.environ['SECURE_PROXY_SSL_HEADER_VALUE']
+if header:
+    SECURE_PROXY_SSL_HEADER = (header, headerValue)
 
 # Template settings
 TEMPLATES = [
@@ -199,7 +203,8 @@ MIDDLEWARE = (
     "django_otp.middleware.OTPMiddleware",
     "os2borgerpc_admin.middlewares.user_locale_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-)
+) + (("os2borgerpc_admin.middlewares.HttpsOnlyMiddleware",) if os.getenv('HTTPS_GUARANTEED') == 'true' else ())
+
 
 # Email settings
 
